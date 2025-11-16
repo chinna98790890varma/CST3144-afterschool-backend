@@ -8,53 +8,43 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://your-connection-string';
 
-// Middleware
-// CORS - Allow all origins for development, or specify frontend URL for production
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*', // Allow all in development, specify in production
+  origin: process.env.FRONTEND_URL || '*',
   credentials: true
 }));
 app.use(express.json());
 
-// Logger Middleware - logs all server requests to console
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.path}`);
   next();
 });
 
-// Static File Middleware - serves images or returns error if not found
 app.use('/images', express.static(path.join(__dirname, 'images'), {
   setHeaders: (res, filePath) => {
     res.setHeader('Content-Type', 'image/jpeg');
   }
 }));
 
-// Error handler for static files
 app.use('/images', (req, res, next) => {
   res.status(404).json({ error: 'Image not found' });
 });
 
-// MongoDB Connection
 let db;
 let client;
 
 async function connectDB() {
   try {
-    // Validate connection string
     if (!MONGODB_URI || MONGODB_URI.includes('your-connection-string')) {
       throw new Error('MongoDB connection string is not set. Please set MONGO_URI or MONGODB_URI environment variable.');
     }
 
-    // Connection options optimized for Render.com and MongoDB Atlas
-    // For mongodb+srv://, TLS is automatically handled by the driver
     const options = {
-      serverSelectionTimeoutMS: 30000, // 30 seconds for Render deployment
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 30000,
       retryWrites: true,
       w: 'majority',
-      // Additional options for better compatibility
       maxPoolSize: 10,
       minPoolSize: 1,
       maxIdleTimeMS: 30000
@@ -63,17 +53,14 @@ async function connectDB() {
     console.log('Attempting to connect to MongoDB Atlas...');
     console.log('Connection string format:', MONGODB_URI ? 'Set' : 'Missing');
     
-    // Create client and connect
     client = new MongoClient(MONGODB_URI, options);
     
-    // Test connection with a ping
     await client.connect();
     await client.db('admin').command({ ping: 1 });
     
     db = client.db('afterSchoolClasses');
     console.log('✅ Connected to MongoDB Atlas successfully!');
     
-    // Initialize sample data if collections are empty
     await initializeSampleData();
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
@@ -95,7 +82,6 @@ async function connectDB() {
   }
 }
 
-// Initialize sample data
 async function initializeSampleData() {
   try {
     const lessonsCollection = db.collection('lessons');
@@ -125,9 +111,6 @@ async function initializeSampleData() {
   }
 }
 
-// Routes
-
-// GET /lessons - return all lessons
 app.get('/lessons', async (req, res) => {
   try {
     const lessonsCollection = db.collection('lessons');
@@ -139,7 +122,6 @@ app.get('/lessons', async (req, res) => {
   }
 });
 
-// GET /search?query=term - search lessons dynamically
 app.get('/search', async (req, res) => {
   try {
     const query = (req.query.query || '').trim();
@@ -147,37 +129,29 @@ app.get('/search', async (req, res) => {
     
     console.log('Search request received. Query:', query);
     
-    // If query is empty, return all lessons
     if (!query) {
       console.log('Empty query - returning all lessons');
       const allLessons = await lessonsCollection.find({}).toArray();
       return res.json(allLessons);
     }
     
-    // Escape special regex characters in the query
     const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
-    // Create regex for partial matching (case-insensitive) for text fields
     const searchRegex = new RegExp(escapedQuery, 'i');
     console.log('Search regex:', searchRegex.toString());
     
-    // Convert query to numbers for price and space matching
     const queryNumber = parseFloat(query);
     const queryInt = parseInt(query);
     const isNumericQuery = !isNaN(queryNumber) && query.trim() === queryNumber.toString();
     const isIntQuery = !isNaN(queryInt) && query.trim() === queryInt.toString();
     
-    // Build search conditions using $or to search across multiple fields
     const searchConditions = {
       $or: [
-        // Match subject (partial, case-insensitive using $regex)
         { subject: { $regex: searchRegex } },
-        // Match location (partial, case-insensitive using $regex)
         { location: { $regex: searchRegex } }
       ]
     };
     
-    // Add numeric matches if query is a number
     if (isNumericQuery) {
       searchConditions.$or.push({ price: queryNumber });
     }
@@ -187,7 +161,6 @@ app.get('/search', async (req, res) => {
     
     console.log('Search conditions:', JSON.stringify(searchConditions, null, 2));
     
-    // Execute search query
     const lessons = await lessonsCollection.find(searchConditions).toArray();
     
     console.log('Search results:', lessons.length, 'lessons found');
@@ -202,24 +175,20 @@ app.get('/search', async (req, res) => {
   }
 });
 
-// PUT /lessons/:id - update lesson availability (space) or any other field
 app.put('/lessons/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Validate ObjectId format
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Invalid lesson ID format' });
     }
     
-    // Check if request body is provided
     if (!req.body || Object.keys(req.body).length === 0) {
       return res.status(400).json({ error: 'Request body is required' });
     }
     
     const lessonsCollection = db.collection('lessons');
     
-    // Update any fields provided in the request body
     const updateFields = { ...req.body };
     
     const result = await lessonsCollection.updateOne(
@@ -231,7 +200,6 @@ app.put('/lessons/:id', async (req, res) => {
       return res.status(404).json({ error: 'Lesson not found' });
     }
     
-    // Return success message as requested
     res.json({ message: 'Lesson availability updated successfully' });
   } catch (error) {
     console.error('Error updating lesson:', error);
@@ -239,22 +207,18 @@ app.put('/lessons/:id', async (req, res) => {
   }
 });
 
-// POST /orders - create new order
 app.post('/orders', async (req, res) => {
   try {
     const { name, phone, lessons } = req.body;
     
-    // Validation
     if (!name || !phone || !lessons || !Array.isArray(lessons) || lessons.length === 0) {
       return res.status(400).json({ error: 'Invalid order data' });
     }
     
-    // Validate name (letters only)
     if (!/^[A-Za-z\s]+$/.test(name)) {
       return res.status(400).json({ error: 'Name must contain only letters' });
     }
     
-    // Validate phone (numbers only)
     if (!/^\d+$/.test(phone)) {
       return res.status(400).json({ error: 'Phone must contain only numbers' });
     }
@@ -262,7 +226,6 @@ app.post('/orders', async (req, res) => {
     const ordersCollection = db.collection('orders');
     const lessonsCollection = db.collection('lessons');
     
-    // Update lesson spaces and create order
     const orderLessons = [];
     for (const lessonItem of lessons) {
       const lesson = await lessonsCollection.findOne({ _id: new ObjectId(lessonItem.id) });
@@ -274,7 +237,6 @@ app.post('/orders', async (req, res) => {
         return res.status(400).json({ error: `Not enough spaces for ${lesson.subject}` });
       }
       
-      // Update lesson space
       await lessonsCollection.updateOne(
         { _id: new ObjectId(lessonItem.id) },
         { $inc: { space: -lessonItem.quantity } }
@@ -287,7 +249,6 @@ app.post('/orders', async (req, res) => {
       });
     }
     
-    // Create order
     const order = {
       name,
       phone,
@@ -305,12 +266,10 @@ app.post('/orders', async (req, res) => {
   }
 });
 
-// Health check route
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
-// Start server
 async function startServer() {
   await connectDB();
   app.listen(PORT, () => {
@@ -318,7 +277,6 @@ async function startServer() {
   });
 }
 
-// Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM signal received: closing HTTP server');
   if (client) {
