@@ -62,23 +62,6 @@ async function connectDB() {
     console.log('✅ Connected to MongoDB Atlas successfully!');
     
     await initializeSampleData();
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error.message);
-    console.error('\n🔍 Troubleshooting steps:');
-    console.error('1. ⚠️  IMPORTANT: Check MongoDB Atlas Network Access');
-    console.error('   - Go to MongoDB Atlas → Network Access');
-    console.error('   - Click "Add IP Address"');
-    console.error('   - Add "0.0.0.0/0" to allow all IPs (for testing)');
-    console.error('   - OR add Render.com IP ranges (check Render docs)');
-    console.error('2. Verify your connection string in Render environment variables');
-    console.error('   - Key: MONGO_URI or MONGODB_URI');
-    console.error('   - Format: mongodb+srv://username:password@cluster.mongodb.net/dbname?retryWrites=true&w=majority');
-    console.error('3. Make sure password special characters are URL-encoded');
-    console.error('   - @ becomes %40, # becomes %23, etc.');
-    console.error('4. Verify MongoDB Atlas cluster is running (not paused)');
-    console.error('5. Check Render logs for more details');
-    console.error('6. Ensure Node.js version is 20.x (updated in package.json)\n');
-    process.exit(1);
   }
 }
 
