@@ -209,21 +209,7 @@ app.post('/orders', async (req, res) => {
     const ordersCollection = db.collection('orders');
     const lessonsCollection = db.collection('lessons');
     
-    const orderLessons = [];
-    for (const lessonItem of lessons) {
-      const lesson = await lessonsCollection.findOne({ _id: new ObjectId(lessonItem.id) });
-      if (!lesson) {
-        return res.status(404).json({ error: `Lesson ${lessonItem.id} not found` });
-      }
-      
-      if (lesson.space < lessonItem.quantity) {
-        return res.status(400).json({ error: `Not enough spaces for ${lesson.subject}` });
-      }
-      
-      await lessonsCollection.updateOne(
-        { _id: new ObjectId(lessonItem.id) },
-        { $inc: { space: -lessonItem.quantity } }
-      );
+    
       
       orderLessons.push({
         id: lessonItem.id,
