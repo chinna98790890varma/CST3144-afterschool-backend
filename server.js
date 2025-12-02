@@ -90,12 +90,12 @@ async function initializeSampleData() {
     if (count === 0) {
       const sampleLessons = [
         { subject: 'Mathematics', location: 'London', price: 100, space: 5, icon: 'fa-calculator' },
-        { subject: 'English Literature', location: 'Manchester', price: 90, space: 8, icon: 'fa-book' },
-        { subject: 'Science', location: 'London', price: 110, space: 3, icon: 'fa-flask' },
-        { subject: 'Art & Design', location: 'Birmingham', price: 85, space: 10, icon: 'fa-palette' },
-        { subject: 'Music', location: 'London', price: 95, space: 6, icon: 'fa-music' },
-        { subject: 'Physical Education', location: 'Leeds', price: 75, space: 12, icon: 'fa-football-ball' },
-        { subject: 'Computer Science', location: 'Manchester', price: 120, space: 4, icon: 'fa-laptop-code' },
+        { subject: 'English Literature', location: 'Manchester', price: 90, space: 5, icon: 'fa-book' },
+        { subject: 'Science', location: 'London', price: 110, space: 5, icon: 'fa-flask' },
+        { subject: 'Art & Design', location: 'Birmingham', price: 85, space: 5, icon: 'fa-palette' },
+        { subject: 'Music', location: 'London', price: 95, space: 5, icon: 'fa-music' },
+        { subject: 'Physical Education', location: 'Leeds', price: 75, space: 5, icon: 'fa-football-ball' },
+        { subject: 'Computer Science', location: 'Manchester', price: 120, space: 5, icon: 'fa-laptop-code' },
         { subject: 'History', location: 'Birmingham', price: 80, space: 7, icon: 'fa-landmark' },
         { subject: 'Geography', location: 'London', price: 85, space: 9, icon: 'fa-globe' },
         { subject: 'French Language', location: 'Manchester', price: 95, space: 5, icon: 'fa-language' },
