@@ -100,7 +100,7 @@ async function initializeSampleData() {
         { subject: 'Geography', location: 'London', price: 85, space: 9, icon: 'fa-globe' },
         { subject: 'French Language', location: 'Manchester', price: 95, space: 5, icon: 'fa-language' },
         { subject: 'Drama', location: 'Leeds', price: 88, space: 6, icon: 'fa-theater-masks' },
-        { subject: 'Cooking', location: 'London', price: 105, space: 4, icon: 'fa-utensils' }
+        { subject: 'Cooking', location: 'London', price: 105, space: 5, icon: 'fa-utensils' }
       ];
       
       await lessonsCollection.insertMany(sampleLessons);
